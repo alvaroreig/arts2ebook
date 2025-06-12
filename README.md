@@ -9,6 +9,8 @@
 
 Because some websites aren't correctly displayed in Wallabag, it's possible to set up credentials for the [Full-Text RSS API](https://rapidapi.com/fivefilters/api/full-text-rss) and specify certain domains for which URLs will be retrieved using the API instead of the content provided by Wallabag.
 
+![Index](images/index.png)
+
 This software was developed after Pocket's shutdown, which caused the [Pocket+ recipe for Calibre](https://github.com/mmagnus/Pocket-Plus-Calibre-Plugin) to stop working.
 
 ## Installation
