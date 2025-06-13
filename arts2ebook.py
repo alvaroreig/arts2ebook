@@ -31,9 +31,19 @@ email = os.getenv('EMAIL')
 
 # ======= OTHER CONF =======
 FULLTEXTRSS_API_KEY = os.getenv('FULLTEXTRSS_API_KEY')
-DOMAINS_EXTRACT_USING_API = os.getenv('DOMAINS_EXTRACT_USING_API', '').split(',')
-DOMAINS_EXCLUDED = os.getenv('DOMAINS_EXCLUDED', '').split(',')
-DOMAINS_THAT_NEED_ENCODING_FIX = os.getenv('DOMAINS_THAT_NEED_ENCODING_FIX', '').split(',')
+
+def parse_domains(env_var):
+    value = os.getenv(env_var, '')
+    return [d.strip() for d in value.split(',') if d.strip()] if value else []
+
+DOMAINS_THAT_NEED_ENCODING_FIX = parse_domains('DOMAINS_THAT_NEED_ENCODING_FIX')
+DOMAINS_EXCLUDED = parse_domains('DOMAINS_EXCLUDED')
+DOMAINS_EXTRACT_USING_API = parse_domains('DOMAINS_EXTRACT_USING_API')
+
+# Imprimir todas las variables de configuración
+print("DOMAINS_THAT_NEED_ENCODING_FIX:", DOMAINS_THAT_NEED_ENCODING_FIX)
+print("DOMAINS_EXCLUDED:", DOMAINS_EXCLUDED)
+print("DOMAINS_EXTRACT_USING_API:", DOMAINS_EXTRACT_USING_API)
 
 MARK_AS_READ = os.getenv('MARK_AS_READ', 'False').lower() == 'true'
 SEND_EMAIL = os.getenv('SEND_EMAIL', 'False').lower() == 'true'
@@ -54,9 +64,8 @@ def get_token_wallabag():
     response.raise_for_status()
     return response.json()['access_token']
 
-def get_unread_entries_from_wallabag():
+def get_unread_entries_from_wallabag(token):
 
-    token = get_token_wallabag()
     url = f'{WALLABAG_API_BASE_URL}/api/entries.json'
     headers = {'Authorization': f'Bearer {token}'}
     params = {'archive': 0, 'perPage': 100}
@@ -178,7 +187,9 @@ def create_epub(grouped_articles):
 
 def main():
 
-    entries = get_unread_entries_from_wallabag()
+    token = get_token_wallabag()
+
+    entries = get_unread_entries_from_wallabag(token)
     print(f'Found {len(entries)} unread articles.')
 
     grouped = {}
