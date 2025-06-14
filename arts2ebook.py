@@ -11,6 +11,13 @@ import datetime
 from dotenv import load_dotenv
 import os
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+import os
+
 load_dotenv()
 DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 
@@ -22,12 +29,13 @@ WALABAG_PASSWORD = os.getenv('WALABAG_PASSWORD')
 WALLABAG_API_BASE_URL = os.getenv('WALLABAG_API_BASE_URL')
 
 # ======= EMAIL CONF =======
-smtp_server = os.getenv('SMTP_SERVER')
-smtp_port = os.getenv('SMTP_PORT')
-smtp_user = os.getenv('SMTP_USER')
-smtp_password = os.getenv('SMTP_PASSWORD')
-smtp_from = os.getenv('SMTP_FROM')
-email = os.getenv('EMAIL')
+SMTP_SERVER = os.getenv('SMTP_SERVER')
+SMTP_PORT = os.getenv('SMTP_PORT')
+SMTP_USER = os.getenv('SMTP_USER')
+SMTP_PASSWORD = os.getenv('SMTP_PASSWORD')
+SMTP_FROM = os.getenv('SMTP_FROM')
+DESTINATION_EMAIL = os.getenv('EMAIL')
+
 
 # ======= OTHER CONF =======
 FULLTEXTRSS_API_KEY = os.getenv('FULLTEXTRSS_API_KEY')
@@ -185,6 +193,42 @@ def create_epub(grouped_articles):
     epub.write_epub(OUTPUT_FILE, book)
     print(f'📘 EPUB created: {OUTPUT_FILE}')
 
+
+
+# Configuración del servidor SMTP
+
+
+def send_email_with_attachment(to_address, subject, body, attachment_path):
+    msg = MIMEMultipart()
+    msg['From'] = SMTP_USER
+    msg['To'] = to_address
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'plain'))
+
+    # Adjuntar archivo
+    if attachment_path and os.path.isfile(attachment_path):
+        filename = os.path.basename(attachment_path)
+        with open(attachment_path, 'rb') as attachment:
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(attachment.read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename={filename}')
+        msg.attach(part)
+    else:
+        print(f"Advertencia: El archivo adjunto '{attachment_path}' no existe o no es válido.")
+
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.send_message(msg)
+        print("El envío del email se completó correctamente.")
+    except Exception as e:
+        print(f"Error al enviar el email: {e}")
+
+# send_email_with_attachment('destinatario@dominio.com', 'Asunto', 'Cuerpo del
+
 def main():
 
     token = get_token_wallabag()
@@ -231,11 +275,7 @@ def main():
 
     # Send the file
     if SEND_EMAIL:
-        print('Sending email to: ' + email)
-        subprocess.run(
-            ['calibre-smtp','--attachment',OUTPUT_FILE,'--relay',smtp_server,'--port',smtp_port,'--username',smtp_user,'--password',smtp_password,
-            '--encryption-method','TLS','--subject',OUTPUT_FILE,smtp_from,email,'email body']
-        )
+        send_email_with_attachment(DESTINATION_EMAIL,"da igual","da igual",OUTPUT_FILE)
 
 if __name__ == '__main__':
     main()
