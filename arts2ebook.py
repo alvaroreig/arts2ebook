@@ -148,7 +148,7 @@ def create_epub(grouped_articles):
        
     book.set_identifier('wallabag-export + ' + DATE)
     book.set_title('Wallabag -' + DATE)
-    book.set_language('es')
+    book.set_language('en')
     book.add_author('Script')
 
     spine = ['nav']
@@ -194,17 +194,13 @@ def create_epub(grouped_articles):
     print(f'📘 EPUB created: {OUTPUT_FILE}')
 
 
-
-# Configuración del servidor SMTP
-
-
 def send_email_with_attachment(to_address, subject, body, attachment_path):
     msg = MIMEMultipart()
     msg['From'] = SMTP_USER
     msg['To'] = to_address
-    msg['Subject'] = subject
+    #msg['Subject'] = subject
 
-    msg.attach(MIMEText(body, 'plain'))
+    #msg.attach(MIMEText(body, 'plain'))
 
     # Adjuntar archivo
     if attachment_path and os.path.isfile(attachment_path):
@@ -224,10 +220,10 @@ def send_email_with_attachment(to_address, subject, body, attachment_path):
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.send_message(msg)
         print("El envío del email se completó correctamente.")
+        print("El email se ha enviado usando:", SMTP_SERVER)
+        print("El email se ha enviado a:", to_address)
     except Exception as e:
         print(f"Error al enviar el email: {e}")
-
-# send_email_with_attachment('destinatario@dominio.com', 'Asunto', 'Cuerpo del
 
 def main():
 
@@ -275,7 +271,7 @@ def main():
 
     # Send the file
     if SEND_EMAIL:
-        send_email_with_attachment(DESTINATION_EMAIL,"da igual","da igual",OUTPUT_FILE)
+        send_email_with_attachment(DESTINATION_EMAIL,"","",OUTPUT_FILE)
 
 if __name__ == '__main__':
     main()
